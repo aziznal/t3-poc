@@ -1,11 +1,25 @@
 import { initTRPC } from "@trpc/server";
+import { Context } from "./context";
 
-// Avoid exporting the entire t-object
-// since it's not very descriptive.
-// For instance, the use of a t variable
-// is common in i18n libraries.
-const t = initTRPC.create();
+const tPublic = initTRPC.create();
+const tProtected = initTRPC.context<Context>().create();
 
 // Base router and procedure helpers
-export const router = t.router;
-export const procedure = t.procedure;
+export const router = tPublic.router;
+
+// ----------------------------------------------
+// Public (Authenticated) Procedure
+// ----------------------------------------------
+
+export const publicProcedure = tPublic.procedure;
+
+// ----------------------------------------------
+// Private (Authenticated) Procedure
+// ----------------------------------------------
+const isAuthenticated = tProtected.middleware(({ next, ctx }) => {
+  return next({
+    ctx,
+  });
+});
+
+export const privateProcedure = tProtected.procedure.use(isAuthenticated);
