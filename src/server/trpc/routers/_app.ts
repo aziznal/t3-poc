@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { privateProcedure, publicProcedure, router } from "../trpc";
-import prisma from "@/client/prisma/prisma";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const appRouter = router({
   hello: publicProcedure
@@ -9,16 +8,29 @@ export const appRouter = router({
         text: z.string(),
       })
     )
-    .query((opts) => {
+    .query(async (opts) => {
+      const userCount = await opts.ctx.prisma.user.count();
+
       return {
         greeting: `hello ${opts.input.text}`,
+        userCount,
       };
     }),
-  protectedHello: privateProcedure.query(async (opts) => {
-    const userCount = await prisma.user?.count();
+  protectedHello: protectedProcedure.query(async (opts) => {
+    const user = await opts.ctx.prisma.user.create({
+      data: {
+        email: "foo@user.com" + Math.random(),
+        fullName: "Foo User",
+        password: "password",
+      },
+    });
+
+    const userCount = await opts.ctx.prisma.user.count();
 
     return {
       greeting: "Welcome to the secret society",
+      userCount,
+      user
     };
   }),
 });

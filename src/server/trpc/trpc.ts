@@ -1,25 +1,27 @@
 import { initTRPC } from "@trpc/server";
 import { Context } from "./context";
 
-const tPublic = initTRPC.create();
-const tProtected = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create();
 
 // Base router and procedure helpers
-export const router = tPublic.router;
+export const router = t.router;
 
 // ----------------------------------------------
 // Public (Authenticated) Procedure
 // ----------------------------------------------
 
-export const publicProcedure = tPublic.procedure;
+export const publicProcedure = t.procedure;
 
 // ----------------------------------------------
 // Private (Authenticated) Procedure
 // ----------------------------------------------
-const isAuthenticated = tProtected.middleware(({ next, ctx }) => {
+const isAuthenticated = t.middleware(({ next, ctx }) => {
   return next({
-    ctx,
+    ctx: {
+      ...ctx,
+      session: { userId: "123" },
+    },
   });
 });
 
-export const privateProcedure = tProtected.procedure.use(isAuthenticated);
+export const protectedProcedure = t.procedure.use(isAuthenticated);

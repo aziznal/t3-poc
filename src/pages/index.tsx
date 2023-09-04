@@ -9,5 +9,7 @@ export default function Home() {
     return <>Loading</>;
   }
 
+  console.log(helloQuery.data);
+
   return <h1>{helloQuery.data?.greeting}</h1>;
 }

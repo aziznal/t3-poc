@@ -1,7 +1,6 @@
+import prisma from "@/client/prisma/prisma";
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-
-import prisma from "@/client/prisma/prisma";
 
 /**
  * Defines your inner context shape.
@@ -18,19 +17,18 @@ interface CreateInnerContextOptions extends Partial<CreateNextContextOptions> {}
  *
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
-export async function createContextInner(opts?: CreateInnerContextOptions) {
+export function createContextInner(opts?: CreateInnerContextOptions) {
   return {
-    prisma,
+    prisma: prisma,
   };
 }
-
 /**
  * Outer context. Used in the routers and will e.g. bring `req` & `res` to the context as "not `undefined`".
  *
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContext(opts: CreateNextContextOptions) {
-  const contextInner = await createContextInner();
+  const contextInner = createContextInner();
 
   return {
     ...contextInner,
@@ -38,7 +36,5 @@ export async function createContext(opts: CreateNextContextOptions) {
     res: opts.res,
   };
 }
-
 export type Context = inferAsyncReturnType<typeof createContextInner>;
-
 // The usage in your router is the same as the example above.
