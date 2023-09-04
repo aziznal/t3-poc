@@ -1,6 +1,10 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// ---------------------------------
+// Prisma Config
+// ---------------------------------
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,11 +15,137 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Todo {
-  id          Int      @id @default(autoincrement())
+// ---------------------------------
+// USER Schemas
+// ---------------------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LearnerData {
+  id Int @id @default(autoincrement())
+}
+
+model InstructorData {
+  id Int @id @default(autoincrement())
+}
+
+// ---------------------------------
+// Classification (CATEGORY and SUBCATEGORY) Schemas
+// ---------------------------------
+model Category {
+  id Int @id @default(autoincrement())
+
+  subcategories Subcategory[]
+  Course        Course[]
+}
+
+model Subcategory {
+  id Int @id @default(autoincrement())
+
+  topics     Topic[]
+  Category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  Course     Course[]
+
+  @@index([categoryId])
+}
+
+model Topic {
+  id Int @id @default(autoincrement())
+
+  competences   Competency[]
+  Subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  subcategoryId Int?
+
+  @@index([subcategoryId])
+}
+
+model Competency {
+  id      Int    @id @default(autoincrement())
+  Topic   Topic? @relation(fields: [topicId], references: [id])
+  topicId Int?
+
+  @@index([topicId])
+}
+
+// ---------------------------------
+// COURSE Schemas
+// ---------------------------------
+
+model Course {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapters     Chapter[]
+  price        String
+  title        String
+  subtitle     String
+  description  String
+  requirements String
+  thumbnailUrl String
+
+  category    Category    @relation(fields: [categoryId], references: [id])
+  subcategory Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  isPublished   Boolean @default(false)
+  isApproved    Boolean @default(false)
+  categoryId    Int
+  subcategoryId Int
+
+  @@index([categoryId])
+  @@index([subcategoryId])
+}
+
+model Chapter {
+  id       Int     @id @default(autoincrement())
+  Course   Course? @relation(fields: [courseId], references: [id])
+  courseId Int?
+
+  @@index([courseId])
+}
+
+model VideoAsset {
+  id Int @id @default(autoincrement())
+
+  title String
+  order Int
+  url   String
+}
+
+model ScriptAsset {
+  id Int @id @default(autoincrement())
+
+  title   String
+  order   Int
+  content String
+}
+
+model QuizAsset {
+  id Int @id @default(autoincrement())
+
+  title     String
+  questions QuizQuestion[]
+}
+
+model QuizQuestion {
+  id          Int        @id @default(autoincrement())
+  QuizAsset   QuizAsset? @relation(fields: [quizAssetId], references: [id])
+  quizAssetId Int?
+
   title       String
+  order       Int
   description String
-  completed   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        String
+  options     String
+  answer      String
+
+  @@index([quizAssetId])
 }
